@@ -1,0 +1,360 @@
+install() {
+#----------------
+# Install mysql
+#----------------
+
+sudo cat << EOF > /etc/yum.repos.d/mysql-community.repo
+[mysql80-community]
+name=MySQL 8.0 Community Server
+baseurl=http://repo.mysql.com/yum/mysql-8.0-community/fc/\$releasever/\$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.mysql.com/RPM-GPG-KEY-mysql
+EOF
+
+sudo dnf -y update
+sudo dnf -y install mysql-community-server php php-common php-mbstring php-gettext php-json php-mysqlnd
+
+
+
+
+# start mysql service
+sudo service mysqld start
+
+
+# get Temporary root Password
+root_temp_pass=$(sudo grep 'A temporary password' /var/log/mysqld.log |tail -1 |awk '{split($0,a,": "); print a[2]}')
+
+echo "root_temp_pass:"$root_temp_pass
+
+# mysql_secure_installation.sql
+cat > mysql_secure_installation.sql << EOF
+
+# Make sure that NOBODY can access the server without a password
+ALTER USER 'root'@'localhost' IDENTIFIED BY '$root_temp_pass';
+
+# Kill the anonymous users
+DELETE FROM mysql.user WHERE User='';
+
+# disallow remote login for root
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+
+# Kill off the demo database
+DROP DATABASE IF EXISTS test;
+
+# Make our changes take effect
+FLUSH PRIVILEGES;
+
+EOF
+
+mysql -uroot -p"$root_temp_pass" --connect-expired-password <mysql_secure_installation.sql
+rm mysql_secure_installation.sql
+
+#--------------
+# Install PHP
+#--------------
+
+
+
+
+
+
+DOMAIN_NAME=example
+
+sudo mkdir -p /var/www/$DOMAIN_NAME
+
+sudo chown -R $USER:$USER /var/www/$DOMAIN_NAME
+
+sudo chmod -R 755 /var/www/$DOMAIN_NAME
+
+
+
+sudo cat << EOF > /var/www/$DOMAIN_NAME/index.html
+<html>
+    <head>
+        <title>Welcome to Your_domain!</title>
+    </head>
+    <body>
+        <h1>Success!  The your_domain server block is working!</h1>
+    </body>
+</html>
+EOF
+
+
+sudo cat << EOF > /var/www/$DOMAIN_NAME/index.php
+<?php phpinfo(); ?>
+EOF
+
+
+
+
+sudo cat << EOF > /etc/httpd/conf.d/$DOMAIN_NAME.conf
+<Directory /var/www/$DOMAIN_NAME>
+    Require all granted
+</Directory>
+
+<VirtualHost *:80>
+    DocumentRoot "/var/www/$DOMAIN_NAME"
+    ServerName www.$DOMAIN_NAME.com
+    ServerAlias $DOMAIN_NAME.com
+    ServerAdmin root@$DOMAIN_NAME.com
+    ErrorLog "/var/log/httpd/error_log_$DOMAIN_NAME"
+    CustomLog "/var/log/httpd/access_log_$DOMAIN_NAME" combined
+</VirtualHost>
+EOF
+
+
+
+
+sudo mkdir -p /usr/share/mamp
+
+PHPMYADMIN_VERSION=4.9.0.1
+
+
+wget -O /tmp/z.$$ https://files.phpmyadmin.net/phpMyAdmin/$PHPMYADMIN_VERSION/phpMyAdmin-$PHPMYADMIN_VERSION-all-languages.zip &&
+   unzip /tmp/z.$$ -d '/usr/share/mamp' &&
+   rm /tmp/z.$$ &&
+   mv /usr/share/mamp/phpMyAdmin-$PHPMYADMIN_VERSION-all-languages /usr/share/mamp/phpMyAdmin
+
+
+
+sudo cat << EOF > /etc/httpd/conf.d/phpMyAdmin.conf
+# phpMyAdmin - Web based MySQL browser written in php
+# 
+# Allows only localhost by default
+#
+# But allowing phpMyAdmin to anyone other than localhost should be considered
+# dangerous unless properly secured by SSL
+
+Alias /phpMyAdmin /usr/share/mamp/phpMyAdmin
+Alias /phpmyadmin /usr/share/mamp/phpMyAdmin
+
+<Directory /usr/share/mamp/phpMyAdmin/>
+   AddDefaultCharset UTF-8
+
+   <IfModule mod_authz_core.c>
+     # Apache 2.4
+     <RequireAny>
+       Require ip 127.0.0.1
+       Require ip ::1
+     </RequireAny>
+   </IfModule>
+   <IfModule !mod_authz_core.c>
+     # Apache 2.2
+     Order Deny,Allow
+     Deny from All
+     Allow from 127.0.0.1
+     Allow from ::1
+   </IfModule>
+</Directory>
+
+<Directory /usr/share/mamp/phpMyAdmin/setup/>
+   <IfModule mod_authz_core.c>
+     # Apache 2.4
+     <RequireAny>
+       Require ip 127.0.0.1
+       Require ip ::1
+     </RequireAny>
+   </IfModule>
+   <IfModule !mod_authz_core.c>
+     # Apache 2.2
+     Order Deny,Allow
+     Deny from All
+     Allow from 127.0.0.1
+     Allow from ::1
+   </IfModule>
+</Directory>
+
+# These directories do not require access over HTTP - taken from the original
+# phpMyAdmin upstream tarball
+#
+<Directory /usr/share/mamp/phpMyAdmin/libraries/>
+    Order Deny,Allow
+    Deny from All
+    Allow from None
+</Directory>
+
+<Directory /usr/share/mamp/phpMyAdmin/setup/lib/>
+    Order Deny,Allow
+    Deny from All
+    Allow from None
+</Directory>
+
+<Directory /usr/share/mamp/phpMyAdmin/setup/frames/>
+    Order Deny,Allow
+    Deny from All
+    Allow from None
+</Directory>
+EOF
+
+
+
+# PHP with MySQL 8.0+ error: The server requested authentication method unknown to the client [duplicate]
+root_temp_pass=$(sudo grep 'A temporary password' /var/log/mysqld.log |tail -1 |awk '{split($0,a,": "); print a[2]}')
+
+cat > mysql_auth_fix.sql << EOF
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$root_temp_pass';
+
+# Make our changes take effect
+FLUSH PRIVILEGES;
+EOF
+
+
+mysql -uroot -p"$root_temp_pass" <mysql_auth_fix.sql
+rm mysql_auth_fix.sql
+
+sudo systemctl restart mysqld
+sudo systemctl restart httpd
+}
+
+
+remove() {
+
+#----------------------------------
+# Remove LAMP
+#----------------------------------
+
+sudo systemctl stop mysqld
+sudo systemctl stop httpd
+
+sudo dnf -y remove mysql-community-server php php-common php-mbstring php-gettext php-json php-mysqlnd
+
+sudo rm /etc/yum.repos.d/mysql-community.repo
+
+DOMAIN_NAME=example
+
+sudo rm /etc/httpd/conf.d/$DOMAIN_NAME.conf
+sudo rm /etc/httpd/conf.d/phpMyAdmin.conf
+
+sudo rm -r /var/www/$DOMAIN_NAME
+sudo rm -r /usr/share/mamp
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+header() {
+  clear
+  echo ""
+  echo " ##          ###    ##     ## ########  "
+  echo " ##         ## ##   ###   ### ##     ## "
+  echo " ##        ##   ##  #### #### ##     ## "
+  echo " ##       ##     ## ## ### ## ########  "
+  echo " ##       ######### ##     ## ##        "
+  echo " ##       ##     ## ##     ## ##        "
+  echo " ######## ##     ## ##     ## ##        "
+  echo ""
+}
+
+
+serverStatus(){
+
+echo "-----------------------------------------"
+
+string=$(systemctl status httpd | grep "Active")
+apache_port=$(sudo netstat -tlpn | grep httpd | awk '{ print $4 }' | cut -c 4- | tr '\n' ' ')
+if [[ $string == *"active (running)"* ]]
+  then
+   status_sym="\e[32m●\e[39m"
+   status_msg="active (running) $apache_port"
+  else
+   status_sym="\e[31m●\e[39m"
+   status_msg="inactive (not running) $apache_port"
+fi
+
+echo -e "Apache Server : $status_sym $status_msg"
+
+string1=$(systemctl status mysqld | grep "Active")
+mysql_port=$(sudo netstat -tlpn | grep mysqld | awk '{ print $4 }' | cut -c 4- | tr '\n' ' ')
+if [[ $string1 == *"active (running)"* ]]
+  then
+   status_sym="\e[32m●\e[39m"
+   status_msg="active (running) $mysql_port"
+  else
+   status_sym="\e[31m●\e[39m"
+   status_msg="inactive (not running) $mysql_port"
+fi
+
+echo -e "MySQL Server  : $status_sym $status_msg"
+
+
+echo "-----------------------------------------"
+}
+
+
+status(){
+while true; do
+    clear
+    header
+    serverStatus
+    echo ""
+    
+    options=("Start servers" "Stop servers" "Restart servers")
+    PS3=""$'\n'"#? "
+    echo "Choose an action:"
+    select opt in "${options[@]}"; do
+        case $REPLY in
+            1) sudo service httpd start;sudo service mysqld start; break ;;
+            2) sudo service httpd stop;sudo service mysqld stop; break ;;
+	    3) sudo service httpd restart;sudo service mysqld restart; break ;;
+            *) echo "What's that?" >&2
+        esac
+    done
+done
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+case "$1" in
+  "-install")
+    install
+    ;;
+  "-remove")
+    remove
+    ;;
+  "-status")
+    status
+    ;;
+  *)
+    echo "You have failed to specify what to do correctly."
+    exit 1
+    ;;
+esac
+
