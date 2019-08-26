@@ -1,72 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300&display=swap" rel="stylesheet">
-	<style>
-	*, *::before, *::after {
-	   box-sizing: border-box;
-	   font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-	}
-
-
-	  .container {
-	   width: 100%;
-	   padding-right: 15px;
-	   padding-left: 15px;
-	   margin-right: auto;
-	   margin-left: auto;
-	   max-width: 720px;
-	  }
-
-	.row {
-	   display: flex;
-	   flex-wrap: wrap;
-	   margin-right: -15px;
-	   margin-left: -15px;
-	}
-
-
-	.align-items-center {
-	   align-items: center !important;
-	}
-
-	.text-center {
-	   text-align: center !important;
-	}
-
-	.font-weight-light {
-	   font-weight: 300 !important;
-	}
-
-	.pb-4, .py-4 {
-	   padding-bottom: 1.5rem !important;
-	line-height: 1.2;
-	}
-
-	h3, .h3 {
-	   font-size: 1.75rem;
-	}
-
-	.font-weight-light {
-	   font-weight: 300 !important;
-	}
-
-	h5, .h5 {
-	   font-size: 1.25rem;
-	}
-.ascii-art {
-    font-family: monospace;
-    white-space: pre;
-}
-	</style>
-	<title></title>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Space+Mono&display=swap" rel="stylesheet">
+  <title></title>
 </head>
 <body style="background-color: #f8f9fa !important;">
-	<div class="bg-light border py-5" style="padding-bottom: 3rem !important;">
-		<div class="container">
-			<div class="row align-items-center">
-				<div class="col-lg-8 col-12 mx-auto text-center">
-<div class="ascii-art">
+  <div style="padding-bottom: 3rem !important;">
+    <div style="padding-top: 60px;width: 100%;padding-right: 15px;padding-left: 15px;margin-right: auto;margin-left: auto;max-width: 720px;">
+      <div style="display: flex;flex-wrap: wrap;margin-right: -15px;margin-left: -15px;align-items: center !important;">
+        <div style="text-align: center !important;">
+        <div style="font-family: monospace;white-space: pre;">
 ##          ###    ##     ## ######## 
 ##         ## ##   ###   ### ##     ##
 ##        ##   ##  #### #### ##     ##
@@ -74,13 +18,19 @@
 ##       ######### ##     ## ##       
 ##       ##     ## ##     ## ##       
 ######## ##     ## ##     ## ##       
-</div>
-					<h5 class="font-weight-light">LAMP is a free, local server environment that can be installed under linux environment with just a few commands. LAMP provides them with all the tools they need to develop php website on their desktop PC for testing or development purposes, for example.</h5>
-
-                                        <h5 class="font-weight-light">Source code is on GitHub</h5>
-				</div>
-			</div>
-		</div>
-	</div>
+        </div>
+        <h5 style="font-family: Open Sans;font-size: 1.25rem;font-weight: 300 !important;">LAMP is a free, local server environment that can be installed under linux environment with just a few commands. LAMP provides them with all the tools they need to develop php website on their desktop PC for testing or development purposes.</h5>
+        <h5 style="display: inline;font-family: Open Sans;font-size: 1.25rem;font-weight: 300 !important;">Supported On:</h5><img alt="" height="55" src="https://fedoraproject.org/w/uploads/thumb/d/d6/Guidelines-fedora-logo.jpg/120px-Guidelines-fedora-logo.jpg.png" style="margin-bottom: -15px;" width="120"></div>
+      </div>
+    </div>
+  </div>
+  <div style="width: 100%; margin-right: auto; margin-left: auto; max-width: 817px; font-size:14px;">
+    <h4 style="margin: 0;font-family: Open Sans;font-weight: 300 !important;">Install :</h4>
+    <p style="font-family: 'Space Mono', monospace;">wget -Nnv -q https://raw.githubusercontent.com/kavanmevada/lamp-linux/master/LAMP && sudo bash LAMP -install; rm -f LAMP</p>
+  </div>
+  <div style="width: 100%; margin-right: auto; margin-left: auto; max-width: 817px; margin-top: 50px; font-size:14px;">
+    <h4 style="margin: 0;font-family: Open Sans;font-weight: 300 !important;">Remove :</h4>
+    <p style="font-family: 'Space Mono', monospace;">wget -Nnv -q https://raw.githubusercontent.com/kavanmevada/lamp-linux/master/LAMP && sudo bash LAMP -remove; rm -f LAMP</p>
+  </div>
 </body>
 </html>
