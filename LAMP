@@ -261,50 +261,50 @@ sudo rm -r /usr/share/mamp
 
 header() {
   clear
-  echo ""
-  echo " ##          ###    ##     ## ########  "
-  echo " ##         ## ##   ###   ### ##     ## "
-  echo " ##        ##   ##  #### #### ##     ## "
-  echo " ##       ##     ## ## ### ## ########  "
-  echo " ##       ######### ##     ## ##        "
-  echo " ##       ##     ## ##     ## ##        "
-  echo " ######## ##     ## ##     ## ##        "
-  echo ""
+  echo -e "\e[38;5;244m"
+  echo -e " ##          ###    ##     ## ########  "
+  echo -e " ##         ## ##   ###   ### ##     ## "
+  echo -e " ##        ##   ##  #### #### ##     ## "
+  echo -e " ##       ##     ## ## ### ## ########  "
+  echo -e " ##       ######### ##     ## ##        "
+  echo -e " ##       ##     ## ##     ## ##        "
+  echo -e " ######## ##     ## ##     ## ##        "
+  echo -e "\e[39m"
 }
 
 
 serverStatus(){
 
-echo "-----------------------------------------"
+echo -e "\e[32m---------------------------------------------\e[39m"
 
 string=$(systemctl status httpd | grep "Active")
 apache_port=$(sudo netstat -tlpn | grep httpd | awk '{ print $4 }' | cut -c 4- | tr '\n' ' ')
 if [[ $string == *"active (running)"* ]]
   then
    status_sym="\e[32m●\e[39m"
-   status_msg="active (running) $apache_port"
+   status_msg="active (running)"
   else
    status_sym="\e[31m●\e[39m"
-   status_msg="inactive (not running) $apache_port"
+   status_msg="inactive (not running)"
 fi
 
-echo -e "Apache Server : $status_sym $status_msg"
+echo -e "Apache Server : $status_sym $status_msg \e[38;5;196m$apache_port\e[39m"
 
 string1=$(systemctl status mysqld | grep "Active")
 mysql_port=$(sudo netstat -tlpn | grep mysqld | awk '{ print $4 }' | cut -c 4- | tr '\n' ' ')
 if [[ $string1 == *"active (running)"* ]]
   then
    status_sym="\e[32m●\e[39m"
-   status_msg="active (running) $mysql_port"
+   status_msg="active (running)"
   else
    status_sym="\e[31m●\e[39m"
-   status_msg="inactive (not running) $mysql_port"
+   status_msg="inactive (not running)"
 fi
 
-echo -e "MySQL Server  : $status_sym $status_msg"
+echo -e "MySQL Server  : $status_sym $status_msg \e[38;5;196m$mysql_port\e[39m"
 
 
-echo "-----------------------------------------"
+echo -e "\e[32m---------------------------------------------\e[39m"
 }
 
 
@@ -317,7 +317,7 @@ while true; do
     
     options=("Start servers" "Stop servers" "Restart servers")
     PS3=""$'\n'"#? "
-    echo "Choose an action:"
+    echo -e "Choose an action:"
     select opt in "${options[@]}"; do
         case $REPLY in
             1) sudo service httpd start;sudo service mysqld start; break ;;
